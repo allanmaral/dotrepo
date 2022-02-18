@@ -22,7 +22,11 @@ export function exec(command: string, args: Array<string>, opts?: Options) {
  * @param args Arguments to pass to the command.
  * @param opts Execa options.
  */
- export async function execAndRead(command: string, args: Array<string>, opts?: Options) {
+export async function execAndRead(
+  command: string,
+  args: Array<string>,
+  opts?: Options
+) {
   const { stdout } = await exec(command, args, opts);
   return stdout;
 }

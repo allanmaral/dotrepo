@@ -81,14 +81,14 @@ export async function prepare<T extends BaseArguments = BaseArguments>(
     "/Users/allan/Documents/Projects/accenture/brain-backend" ||
     process.cwd();
   const config = loadConfiguration(path);
-  let lock = readLock(path);
+  let lock = await readLock(path);
   if (lock && lock.inDevelopment) {
     projects = lock.projects;
     solutions = lock.solutions;
   } else {
     projects = await loadWorkspaceProjects(path, config);
     solutions = await loadWorkspaceSolutions(path, projects, config);
-    lock = createLock(path, config, projects, solutions);
+    lock = await createLock(path, projects, solutions);
   }
   const dependencyGraph = createDependencyGraph(projects);
 

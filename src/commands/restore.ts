@@ -7,13 +7,12 @@ import { restoreSolutionsToRelease } from "../solutions";
 import { createCommand, prepare } from "./base";
 
 export const stopDevelopmentCommand = createCommand({
-  command: "stop-development",
-  aliases: ['stop'],
-  describe: "Exit development mode",
+  command: "restore",
+  describe: "Restore monorepo environment",
   handler: async (args) => {
-    const { projects, path, lock, solutions, dependencyGraph } = prepare(args);
+    const { projects, path, lock, solutions, dependencyGraph } = await prepare(args);
 
-    const spinner = ora("Setting up projects to development mode").start();
+    const spinner = ora("Restoring projects and solutions").start();
     await Promise.all([
       restoreProjectsToRelease(projects, path, lock),
       restoreSolutionsToRelease(
@@ -25,7 +24,7 @@ export const stopDevelopmentCommand = createCommand({
       ),
     ]);
     delete lock.inDevelopment;
-    saveLock(path, lock);
+    await saveLock(path, lock);
     spinner.succeed('Done');
   },
 });

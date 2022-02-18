@@ -10,6 +10,7 @@ import {
   glob
 } from "../utils";
 import { grammar } from "../grammar";
+import { LockFile } from '../lock';
 
 import { Project, Dependency, DependencyType } from "./project";
 
@@ -176,16 +177,16 @@ function getProjectReferenceExpression(projectPath: string): RegExp {
   return new RegExp(regExp, "i");
 }
 
-export function setupProjectsToDevelopment(
+export async function setupProjectsToDevelopment(
   projects: Record<string, Project>,
   path: string,
   lock: LockFile
-): void {
+): Promise<void> {
   if (lock.inDevelopment) {
     throw new Error("Already in development mode, aborting.");
   }
 
-  Object.keys(projects).forEach((projectId) => {
+  await Promise.all(Object.keys(projects).map(async (projectId) => {
     log.silly(
       "DotRepo",
       `Setting up project "%s" to development mode`,
@@ -194,7 +195,7 @@ export function setupProjectsToDevelopment(
     const project = projects[projectId];
     const fullPath = resolve(path, project.path);
 
-    let projectFile = readFileSync(fullPath).toString();
+    let projectFile = await readFile(fullPath, "utf8");
     project.dependencies.forEach((dependency) => {
       const dependencyId = dependency.id;
       const dependencyProject = projects[dependencyId];
@@ -211,25 +212,25 @@ export function setupProjectsToDevelopment(
       }
     });
 
-    writeFileSync(fullPath, projectFile);
-  });
+    await writeFile(fullPath, projectFile);
+  }));
 }
 
-export function restoreProjectsToRelease(
+export async function restoreProjectsToRelease(
   projects: Record<string, Project>,
   path: string,
   lock: LockFile
-): void {
+): Promise<void> {
   if (!lock.inDevelopment) {
     throw new Error("Not in development mode, aborting.");
   }
 
-  Object.keys(projects).forEach((projectId) => {
+  await Promise.all(Object.keys(projects).map(async (projectId) => {
     log.silly("DotRepo", `Restoring project "%s" to release mode`, projectId);
     const project = projects[projectId];
     const fullPath = resolve(path, project.path);
 
-    let projectFile = readFileSync(fullPath).toString();
+    let projectFile = await readFile(fullPath, "utf-8");
     project.dependencies.forEach((dependency) => {
       const dependencyId = dependency.id;
       const dependencyProject = projects[dependencyId];
@@ -248,6 +249,6 @@ export function restoreProjectsToRelease(
       }
     });
 
-    writeFileSync(fullPath, projectFile);
-  });
+    await writeFile(fullPath, projectFile);
+  }));
 }

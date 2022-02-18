@@ -1,8 +1,8 @@
 import yargs from "yargs";
 
 import { graphCommand } from "./commands/graph";
-import { startDevelopmentCommand } from "./commands/start-development";
-import { stopDevelopmentCommand } from "./commands/stop-development";
+import { startDevelopmentCommand } from "./commands/prepare";
+import { stopDevelopmentCommand } from "./commands/restore";
 
 yargs
   .scriptName("dotrepo")

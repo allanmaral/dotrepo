@@ -1,36 +1,32 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFile, writeFile } from "fs/promises";
 import { resolve } from "path";
-import { Configuration } from "./config";
 import { Project } from "./projects/project";
 import { Solution } from "./solutions/solution";
 
 const LockFileName = "workspace-lock.json";
 
 export interface LockFile {
-  version: string;
   inDevelopment?: boolean;
   projects: Record<string, Project>;
   solutions: Record<string, Solution>;
 }
 
-export function createLock(
+export async function createLock(
   path: string,
-  config: Configuration,
   projects: Record<string, Project>,
   solutions: Record<string, Solution>
-): LockFile {
+): Promise<LockFile> {
   const lock: LockFile = {
-    version: config.version,
     solutions: solutions,
     projects: projects,
   };
 
-  saveLock(path, lock);
+  await saveLock(path, lock);
 
   return lock;
 }
 
-export function saveLock(path: string, lock: LockFile): void {
+export async function saveLock(path: string, lock: LockFile): Promise<void> {
   const _lock: LockFile = {
     ...lock,
     projects: Object.keys(lock.projects).reduce<Record<string, Project>>(
@@ -55,12 +51,12 @@ export function saveLock(path: string, lock: LockFile): void {
     ),
   };
 
-  writeFileSync(resolve(path, LockFileName), JSON.stringify(_lock, null, 2));
+  await writeFile(resolve(path, LockFileName), JSON.stringify(_lock, null, 2));
 }
 
-export function readLock(path: string): LockFile | undefined {
+export async function readLock(path: string): Promise<LockFile | undefined> {
   try {
-    const fileContent = readFileSync(resolve(path, LockFileName));
+    const fileContent = await readFile(resolve(path, LockFileName));
     const lock = JSON.parse(fileContent.toString()) as LockFile;
     const projects = Object.keys(lock.projects).reduce<Record<string, Project>>(
       (acc, projectKey) => {
