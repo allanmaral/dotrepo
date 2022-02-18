@@ -11,7 +11,14 @@ import pkg from "./package.json";
 const config = {
   input: "./src/index.ts",
 
-  external: [...Object.keys(pkg.dependencies || {}), "fs", "https", "path"],
+  external: [
+    ...Object.keys(pkg.dependencies),
+    ...Object.keys(pkg.devDependencies),
+    "fs",
+    "https",
+    "path",
+    "fs/promises",
+  ],
 
   plugins: [
     resolve({ extensions: [".ts"] }),

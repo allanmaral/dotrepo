@@ -1,5 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
-import glob from "glob";
+import { readFile, writeFile } from 'fs/promises'
 import log from "npmlog";
 import { relative, resolve } from "path";
 
@@ -8,9 +7,8 @@ import { Configuration } from "../config";
 import {
   calculateRelativePathBetweenFiles,
   cleanStringForRegex,
-  uuid,
+  glob
 } from "../utils";
-import { LockFile } from "../lock";
 import { grammar } from "../grammar";
 
 import { Project, Dependency, DependencyType } from "./project";
@@ -20,11 +18,11 @@ import { Project, Dependency, DependencyType } from "./project";
  * @param path Path to the .csproj file.
  * @returns A project description object.
  */
-export function loadProject(path: string): Project {
-  const id = path.match(/[\/\\]([^\/\\]*).csproj$/)?.[1];
+export async function loadProject(path: string): Promise<Project> {
+  const id = path.match(grammar.project.id)?.[1];
   if (!id) throw new Error(`Invalid project path "${path}"`);
 
-  const fileContent = readFileSync(path, "utf8");
+  const fileContent = await readFile(path, "utf8");
 
   const version = fileContent.match(grammar.project.version)?.[1].trim() || "";
   const referenceTags = fileContent.match(grammar.project.reference.tag) || [];
@@ -61,7 +59,6 @@ export function loadProject(path: string): Project {
 
   return {
     id,
-    uuid: uuid(),
     version,
     dependencies,
     path,
@@ -94,25 +91,25 @@ function removeExternalDependencies(
  * @param config Configuration for the workspace.
  * @returns A list of project description objects.
  */
-export function loadWorkspaceProjects(
+export async function loadWorkspaceProjects(
   path: string,
   config?: Configuration
-): Record<string, Project> {
+): Promise<Record<string, Project>> {
   const projectFileNames: Set<string> = new Set();
 
   if (config?.packages) {
-    config.packages.forEach((pkg) => {
-      const projectFiles = glob.sync(`${path}/${pkg}/**/*.csproj`);
+    for(const pkg of config.packages) {
+      const projectFiles = await glob(`${path}/${pkg}/**/*.csproj`);
       projectFiles.forEach((filename) => projectFileNames.add(filename));
-    });
+    };
   } else {
-    const projectFiles = glob.sync(`${path}/**/*.csproj`);
+    const projectFiles = await glob(`${path}/**/*.csproj`);
     projectFiles.forEach((filename) => projectFileNames.add(filename));
   }
 
-  const projectsWithExternalDeps = Array.from(projectFileNames).map(
+  const projectsWithExternalDeps = await Promise.all(Array.from(projectFileNames).map(
     (fileName) => loadProject(fileName)
-  );
+  ));
   const worskspaceProjectIds = new Set(
     projectsWithExternalDeps.map((p) => p.id)
   );

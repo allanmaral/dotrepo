@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "pnpm clean && rollup -c",
-    "build:watch": "pnpm clean && rollup -cw",
+    "dev": "pnpm clean && rollup -cw",
     "clean": "rimraf bin"
   },
   "keywords": [],

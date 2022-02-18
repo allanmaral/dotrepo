@@ -17,6 +17,17 @@ export function exec(command: string, args: Array<string>, opts?: Options) {
 }
 
 /**
+ * Execute a command asynchronously, and read its output.
+ * @param command Command to execute.
+ * @param args Arguments to pass to the command.
+ * @param opts Execa options.
+ */
+ export async function execAndRead(command: string, args: Array<string>, opts?: Options) {
+  const { stdout } = await exec(command, args, opts);
+  return stdout;
+}
+
+/**
  * Execute a command synchronously.
  *
  * @param command Command to execute.

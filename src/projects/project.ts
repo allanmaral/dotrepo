@@ -1,6 +1,5 @@
 export interface Project {
   id: string;
-  uuid: string;
   path: string;
   version: string;
   dependencies: Dependency[];

@@ -70,20 +70,24 @@ export interface BaseArguments {
   workspace: string;
 }
 
-export function prepare<T extends BaseArguments = BaseArguments>(
+export async function prepare<T extends BaseArguments = BaseArguments>(
   args: ArgumentsCamelCase<T>
-): CommandBaseData {
+): Promise<CommandBaseData> {
+  let projects: Record<string, Project>;
+  let solutions: Record<string, Solution> = {};
   const spinner = ora("Preparing workspace").start();
-
-  const path = args.workspace || process.cwd();
+  const path =
+    args.workspace ||
+    "/Users/allan/Documents/Projects/accenture/brain-backend" ||
+    process.cwd();
   const config = loadConfiguration(path);
-  let projects = loadWorkspaceProjects(path, config);
-  let solutions = loadWorkspaceSolutions(path, projects, config);
   let lock = readLock(path);
   if (lock && lock.inDevelopment) {
     projects = lock.projects;
     solutions = lock.solutions;
   } else {
+    projects = await loadWorkspaceProjects(path, config);
+    solutions = await loadWorkspaceSolutions(path, projects, config);
     lock = createLock(path, config, projects, solutions);
   }
   const dependencyGraph = createDependencyGraph(projects);
