@@ -6,7 +6,6 @@ import { grammar } from "../grammar";
 import { exec, glob } from "../utils";
 import { Project } from "../projects/project";
 import { Solution } from "./solution";
-import { LockFile } from "../lock";
 import { Graph } from "../graph";
 
 /**
@@ -25,18 +24,22 @@ export async function loadWorkspaceSolutions(
   const soluitionFileNames: Set<string> = new Set();
 
   if (config?.packages) {
-    await Promise.all(config.packages.map(async (pkg) => {
-      const projectFiles = await glob(`${path}/${pkg}/**/*.sln`);
-      projectFiles.forEach((filename) => soluitionFileNames.add(filename));
-    }));
+    await Promise.all(
+      config.packages.map(async (pkg) => {
+        const projectFiles = await glob(`${path}/${pkg}/**/*.sln`);
+        projectFiles.forEach((filename) => soluitionFileNames.add(filename));
+      })
+    );
   } else {
     const projectFiles = await glob(`${path}/**/*.sln`);
     projectFiles.forEach((filename) => soluitionFileNames.add(filename));
   }
 
-  const solutions = await Promise.all(Array.from(soluitionFileNames).map((solutionPath) =>
-    loadSolution(solutionPath, projects)
-  ));
+  const solutions = await Promise.all(
+    Array.from(soluitionFileNames).map((solutionPath) =>
+      loadSolution(solutionPath, projects)
+    )
+  );
 
   return solutions.reduce<Record<string, Solution>>((acc, solution) => {
     solution.path = relative(path, solution.path);
@@ -77,13 +80,9 @@ export async function loadSolution(
   };
 }
 
-// ##########################
-// #### Development Mode ####
-// ##########################
-
-// <Target Name="CopyPackage" AfterTargets="Pack">
-//   <Copy SourceFiles="$(ProjectDir)/bin/$(Configuration)/$(PackageId).$(PackageVersion).nupkg" DestinationFolder="../../pkgs" />
-// </Target>
+// #################
+// #### Prepare ####
+// #################
 
 function getMissingTransitiveDependencies(
   solution: Solution,
@@ -107,25 +106,16 @@ function getMissingTransitiveDependencies(
   );
 }
 
-export async function setupSolutionsToDevelopment(
+export async function prepareSolutions(
   solutions: Record<string, Solution>,
   projects: Record<string, Project>,
   dependencyGraph: Graph,
-  path: string,
-  lock: LockFile
+  path: string
 ): Promise<void> {
-  if (lock.inDevelopment) {
-    throw new Error("Already in development mode, aborting.");
-  }
-
   const solutionIds = Object.keys(solutions);
   for (let slnIndex = 0; slnIndex < solutionIds.length; slnIndex++) {
     const solutionId = solutionIds[slnIndex];
-    log.silly(
-      "DotRepo",
-      `Setting up solution "%s" to development mode`,
-      solutionId
-    );
+    log.silly("DotRepo", `Preparing solution "%s"`, solutionId);
     const solution = solutions[solutionId];
     const fullPath = resolve(path, solution.path);
 
@@ -134,7 +124,7 @@ export async function setupSolutionsToDevelopment(
       dependencyGraph
     );
 
-    for(let depIndex = 0; depIndex < dependencyIds.length; depIndex++) {
+    for (let depIndex = 0; depIndex < dependencyIds.length; depIndex++) {
       const depId = dependencyIds[depIndex];
       await exec("dotnet", [
         "sln",
@@ -145,42 +135,5 @@ export async function setupSolutionsToDevelopment(
         resolve(path, projects[depId].path),
       ]);
     }
-  }
-}
-
-export async function restoreSolutionsToRelease(
-  solutions: Record<string, Solution>,
-  projects: Record<string, Project>,
-  dependencyGraph: Graph,
-  path: string,
-  lock: LockFile
-): Promise<void> {
-  if (!lock.inDevelopment) {
-    throw new Error("Not in development mode, aborting.");
-  }
-
-  const solutionIds = Object.keys(solutions);
-  for (let slnIndex = 0; slnIndex < solutionIds.length; slnIndex++) {
-    const solutionId = solutionIds[slnIndex];
-    log.silly("DotRepo", `Restoring solution "%s" to release mode`, solutionId);
-    const solution = solutions[solutionId];
-    const fullPath = resolve(path, solution.path);
-
-    const dependencyIds = getMissingTransitiveDependencies(
-      solution,
-      dependencyGraph
-    );
-
-    for (let projIndex = 0; projIndex < dependencyIds.length; projIndex++) {
-      const projectId = dependencyIds[projIndex];
-      await exec("dotnet", [
-        "sln",
-        fullPath,
-        "remove",
-        resolve(path, projects[projectId].path),
-      ]);
-    }
-
-    await exec("dotnet", ["sln", fullPath, "remove", "_Dependencies"]);
   }
 }

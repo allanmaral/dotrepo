@@ -124,6 +124,35 @@ export class Graph{
   }
 
   /**
+   * Get a topological sort of the graph.
+   * 
+   * @returns An array of nodes in topological order
+   */
+  getTopologicalOrder(): Array<GraphNode> {
+    // TODO: Reimplement this method using node removal instead of creating a new graph every iteration
+    let nodes = Array.from(this.nodes.values());
+
+    let sorted = nodes.filter(n => n.dependencies().length === 0);
+    nodes = nodes.filter(n => sorted.indexOf(n) === -1);
+
+    while(nodes.length > 0) {
+      const graph = new Graph();
+      nodes.forEach(n => graph.addNode(n.id, n.value));
+      this.edges.forEach(e => {
+        if (graph.hasNode(e.source) && graph.hasNode(e.target)) {
+          graph.addEdge(e.source.id, e.target.id, e.value)
+        }
+      });
+
+      nodes = Array.from(graph.nodes.values());
+      sorted.push(...nodes.filter(n => n.dependencies().length === 0));
+      nodes = nodes.filter(n => sorted.indexOf(n) === -1);
+    }
+
+    return sorted;
+  }
+
+  /**
    * Print a mermaid graph representation of the graph.
    *
    * @returns A string containing the mermaid graph representation

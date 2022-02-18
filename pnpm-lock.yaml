@@ -7,6 +7,7 @@ specifiers:
   '@types/glob': ^7.2.0
   '@types/node': ^17.0.12
   '@types/npmlog': ^4.1.4
+  '@types/strong-log-transformer': ^1.0.0
   '@types/uuid': ^8.3.4
   '@types/yargs': ^17.0.8
   chalk: ^4.1.2
@@ -18,6 +19,7 @@ specifiers:
   rollup: ^2.66.1
   rollup-plugin-terser: ^7.0.2
   rollup-plugin-typescript2: ^0.31.1
+  strong-log-transformer: ^2.1.0
   tslib: ^2.3.1
   typescript: ^4.5.5
   yargs: ^17.3.1
@@ -28,6 +30,7 @@ dependencies:
   glob: 7.2.0
   npmlog: 6.0.0
   ora: 5.4.1
+  strong-log-transformer: 2.1.0
   yargs: 17.3.1
 
 devDependencies:
@@ -37,6 +40,7 @@ devDependencies:
   '@types/glob': 7.2.0
   '@types/node': 17.0.12
   '@types/npmlog': 4.1.4
+  '@types/strong-log-transformer': 1.0.0
   '@types/uuid': 8.3.4
   '@types/yargs': 17.0.8
   rimraf: 3.0.2
@@ -171,6 +175,12 @@ packages:
 
   /@types/semver/7.3.9:
     resolution: {integrity: sha512-L/TMpyURfBkf+o/526Zb6kd/tchUP3iBDEPjqjb+U2MAJhVRxxrmr2fwpe08E7QsV7YLcpq0tUaQ9O9x97ZIxQ==}
+    dev: true
+
+  /@types/strong-log-transformer/1.0.0:
+    resolution: {integrity: sha512-ljpD7pfMwsQuzpnXxAb3xAkD/eM3jm3T5GdVcwZISpuPZRg1qwpitjzl6Du4mIl7Eeaqu89uyIgOnZadZTy5Xg==}
+    dependencies:
+      '@types/node': 17.0.12
     dev: true
 
   /@types/uuid/8.3.4:
@@ -375,6 +385,10 @@ packages:
 
   /delegates/1.0.0:
     resolution: {integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=}
+    dev: false
+
+  /duplexer/0.1.2:
+    resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
     dev: false
 
   /emoji-regex/8.0.0:
@@ -646,6 +660,10 @@ packages:
     resolution: {integrity: sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==}
     dependencies:
       brace-expansion: 1.1.11
+
+  /minimist/1.2.5:
+    resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
+    dev: false
 
   /npm-run-path/4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -948,6 +966,16 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
+  /strong-log-transformer/2.1.0:
+    resolution: {integrity: sha512-B3Hgul+z0L9a236FAUC9iZsL+nVHgoCJnqCbN588DjYxvGXaXaaFbfmQ/JhvKjZwsOukuR72XbHv71Qkug0HxA==}
+    engines: {node: '>=4'}
+    hasBin: true
+    dependencies:
+      duplexer: 0.1.2
+      minimist: 1.2.5
+      through: 2.3.8
+    dev: false
+
   /supports-color/5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
     engines: {node: '>=4'}
@@ -980,6 +1008,10 @@ packages:
       source-map: 0.7.3
       source-map-support: 0.5.21
     dev: true
+
+  /through/2.3.8:
+    resolution: {integrity: sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=}
+    dev: false
 
   /ts-type/2.1.4_@types+node@17.0.12:
     resolution: {integrity: sha512-wnajiiIMhn/RHJ1oPld95siKmMJrOgaT6+rMmC8vO1LORgDFEzKP2nBmEFM5b4XVe7Q0J5KcU9oRJFzju7UzrA==}

@@ -4,7 +4,7 @@ export const grammar = {
     extension: /\.csproj$/i,
     version: /<Version>\s*([^<]*)\s*<\/Version>/,
     reference: {
-      tag: /<(?:Package|Project)Reference ([^\/>]*)\/?>/gim,
+      tag: /<(?:Package|Project)Reference ([^>]*)>/gim,
       include: /Include="([^"]+)"/i,
       version: /Version="([^"]+)"/i,
     },
@@ -13,5 +13,8 @@ export const grammar = {
     id: /[\/\\]([^$\/\\]*).sln$/i,
     extension: /\.sln$/i,
     listOutput: /-+\n/ 
+  },
+  config: {
+    packageSource: /<packagesources\s*>\s+<clear\s+\/>(\s+)/gi
   }
 };

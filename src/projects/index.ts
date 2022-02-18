@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'fs/promises'
+import { readFile, writeFile } from "fs/promises";
 import log from "npmlog";
 import { relative, resolve } from "path";
 
@@ -7,10 +7,9 @@ import { Configuration } from "../config";
 import {
   calculateRelativePathBetweenFiles,
   cleanStringForRegex,
-  glob
+  glob,
 } from "../utils";
 import { grammar } from "../grammar";
-import { LockFile } from '../lock';
 
 import { Project, Dependency, DependencyType } from "./project";
 
@@ -99,18 +98,19 @@ export async function loadWorkspaceProjects(
   const projectFileNames: Set<string> = new Set();
 
   if (config?.packages) {
-    for(const pkg of config.packages) {
+    for (const pkg of config.packages) {
       const projectFiles = await glob(`${path}/${pkg}/**/*.csproj`);
       projectFiles.forEach((filename) => projectFileNames.add(filename));
-    };
+    }
   } else {
     const projectFiles = await glob(`${path}/**/*.csproj`);
     projectFiles.forEach((filename) => projectFileNames.add(filename));
   }
 
-  const projectsWithExternalDeps = await Promise.all(Array.from(projectFileNames).map(
-    (fileName) => loadProject(fileName)
-  ));
+  const projectsWithExternalDeps = await Promise.all(
+    Array.from(projectFileNames).map((fileName) => loadProject(fileName))
+  );
+
   const worskspaceProjectIds = new Set(
     projectsWithExternalDeps.map((p) => p.id)
   );
@@ -153,6 +153,10 @@ export function createDependencyGraph(
 // #### Development Mode ####
 // ##########################
 
+// <Target Name="CopyPackage" AfterTargets="Pack">
+//   <Copy SourceFiles="$(ProjectDir)/bin/$(Configuration)/$(PackageId).$(PackageVersion).nupkg" DestinationFolder="../../pkgs" />
+// </Target>
+
 /**
  * Create a Regular Expression to find a package reference of a given package.
  *
@@ -177,78 +181,70 @@ function getProjectReferenceExpression(projectPath: string): RegExp {
   return new RegExp(regExp, "i");
 }
 
-export async function setupProjectsToDevelopment(
+export async function prepareProjects(
   projects: Record<string, Project>,
-  path: string,
-  lock: LockFile
+  path: string
 ): Promise<void> {
-  if (lock.inDevelopment) {
-    throw new Error("Already in development mode, aborting.");
-  }
 
-  await Promise.all(Object.keys(projects).map(async (projectId) => {
-    log.silly(
-      "DotRepo",
-      `Setting up project "%s" to development mode`,
-      projectId
-    );
-    const project = projects[projectId];
-    const fullPath = resolve(path, project.path);
+  await Promise.all(
+    Object.keys(projects).map(async (projectId) => {
+      log.silly("DotRepo", `Preparing project "%s"`, projectId);
+      const project = projects[projectId];
+      const fullPath = resolve(path, project.path);
 
-    let projectFile = await readFile(fullPath, "utf8");
-    project.dependencies.forEach((dependency) => {
-      const dependencyId = dependency.id;
-      const dependencyProject = projects[dependencyId];
-      if (dependency.type === DependencyType.Package) {
-        const relativePathToDependency = calculateRelativePathBetweenFiles(
-          project.path,
-          dependencyProject.path
-        );
-        const packageReferenceExp = getPackageReferenceExpression(dependencyId);
-        projectFile = projectFile.replace(
-          packageReferenceExp,
-          `<ProjectReference Include="${relativePathToDependency}" />`
-        );
-      }
-    });
+      let projectFile = await readFile(fullPath, "utf8");
+      project.dependencies.forEach((dependency) => {
+        const dependencyId = dependency.id;
+        const dependencyProject = projects[dependencyId];
+        if (dependency.type === DependencyType.Package) {
+          const relativePathToDependency = calculateRelativePathBetweenFiles(
+            project.path,
+            dependencyProject.path
+          );
+          const packageReferenceExp =
+            getPackageReferenceExpression(dependencyId);
+          projectFile = projectFile.replace(
+            packageReferenceExp,
+            `<ProjectReference Include="${relativePathToDependency}" />`
+          );
+        }
+      });
 
-    await writeFile(fullPath, projectFile);
-  }));
+      await writeFile(fullPath, projectFile);
+    })
+  );
 }
 
-export async function restoreProjectsToRelease(
+export async function prepareProjectsToBuild(
   projects: Record<string, Project>,
-  path: string,
-  lock: LockFile
+  path: string
 ): Promise<void> {
-  if (!lock.inDevelopment) {
-    throw new Error("Not in development mode, aborting.");
-  }
+  await Promise.all(
+    Object.keys(projects).map(async (projectId) => {
+      log.silly("DotRepo", `Preparing project "%s" to build`, projectId);
+      const project = projects[projectId];
+      const fullPath = resolve(path, project.path);
 
-  await Promise.all(Object.keys(projects).map(async (projectId) => {
-    log.silly("DotRepo", `Restoring project "%s" to release mode`, projectId);
-    const project = projects[projectId];
-    const fullPath = resolve(path, project.path);
+      let projectFile = await readFile(fullPath, "utf-8");
+      project.dependencies.forEach((dependency) => {
+        const dependencyId = dependency.id;
+        const dependencyProject = projects[dependencyId];
+        if (!!dependencyProject.version) {
+          const relativePathToDependency = calculateRelativePathBetweenFiles(
+            project.path,
+            dependencyProject.path
+          );
+          const packageReferenceExp = getProjectReferenceExpression(
+            relativePathToDependency
+          );
+          projectFile = projectFile.replace(
+            packageReferenceExp,
+            `<PackageReference Include="${dependencyProject.id}" Version="${dependencyProject.version}" />`
+          );
+        }
+      });
 
-    let projectFile = await readFile(fullPath, "utf-8");
-    project.dependencies.forEach((dependency) => {
-      const dependencyId = dependency.id;
-      const dependencyProject = projects[dependencyId];
-      if (dependency.type === DependencyType.Package) {
-        const relativePathToDependency = calculateRelativePathBetweenFiles(
-          project.path,
-          dependencyProject.path
-        );
-        const packageReferenceExp = getProjectReferenceExpression(
-          relativePathToDependency
-        );
-        projectFile = projectFile.replace(
-          packageReferenceExp,
-          `<PackageReference Include="${dependencyProject.id}" Version="${dependencyProject.version}" />`
-        );
-      }
-    });
-
-    await writeFile(fullPath, projectFile);
-  }));
+      await writeFile(fullPath, projectFile);
+    })
+  );
 }

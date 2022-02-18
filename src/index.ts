@@ -1,14 +1,14 @@
 import yargs from "yargs";
 
 import { graphCommand } from "./commands/graph";
-import { startDevelopmentCommand } from "./commands/prepare";
-import { stopDevelopmentCommand } from "./commands/restore";
+import { initCommand } from "./commands/init";
+import { buildCommand } from "./commands/build";
 
 yargs
   .scriptName("dotrepo")
   .usage("$0 <cmd> [args]")
-  .command(startDevelopmentCommand)
-  .command(stopDevelopmentCommand)
+  .command(initCommand)
+  .command(buildCommand)
   .command(graphCommand)
   .options({
     workspace: {

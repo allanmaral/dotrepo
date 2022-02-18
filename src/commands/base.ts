@@ -2,7 +2,7 @@ import { ArgumentsCamelCase, CommandModule, CommandBuilder } from "yargs";
 import ora from "ora";
 
 import { Configuration, loadConfiguration } from "../config";
-import { createLock, LockFile, readLock } from "../lock";
+import { LockFile } from "../lock";
 import { Project } from "../projects/project";
 import { createDependencyGraph, loadWorkspaceProjects } from "../projects";
 import { Solution } from "../solutions/solution";
@@ -78,24 +78,23 @@ export async function prepare<T extends BaseArguments = BaseArguments>(
   const spinner = ora("Preparing workspace").start();
   const path =
     args.workspace ||
-    "/Users/allan/Documents/Projects/accenture/brain-backend" ||
     process.cwd();
   const config = loadConfiguration(path);
-  let lock = await readLock(path);
-  if (lock && lock.inDevelopment) {
-    projects = lock.projects;
-    solutions = lock.solutions;
-  } else {
+  // let lock = await readLock(path);
+  // if (lock && lock.inDevelopment) {
+  //   projects = lock.projects;
+  //   solutions = lock.solutions;
+  // } else {
     projects = await loadWorkspaceProjects(path, config);
     solutions = await loadWorkspaceSolutions(path, projects, config);
-    lock = await createLock(path, projects, solutions);
-  }
+    // lock = await createLock(path, projects, solutions);
+  // }
   const dependencyGraph = createDependencyGraph(projects);
 
   spinner.succeed();
 
   return {
-    lock,
+    lock: {} as LockFile,
     path,
     config,
     projects,
