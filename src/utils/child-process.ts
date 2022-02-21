@@ -1,30 +1,20 @@
 import { constants } from "os";
 import execa, { SyncOptions, Options, ExecaChildProcess } from "execa";
-import chalk, { ForegroundColor } from "chalk";
+import { Chalk } from "chalk";
 import logTransformer from "strong-log-transformer";
 
 import { Project } from "../projects/project";
-import { dirname } from "path";
+import { AppError } from "../error";
+import { getColor } from "./colors";
 
-type SpawnOptions = Options & { project?: Project };
-type ChildProcess = ExecaChildProcess<string> & { project?: Project };
+export type SpawnOptions = Options & { 
+  project?: Project,
+  color?: Chalk
+};
+export type ChildProcess = ExecaChildProcess<string> & { project?: Project };
 
 // bookkeeping for spawned processes
 const children = new Set<ExecaChildProcess<string>>();
-
-// when streaming processes are spawned, use this color for prefix
-const colorWheel = [
-  "cyan",
-  "magenta",
-  "blue",
-  "yellow",
-  "green",
-  "red",
-] as typeof ForegroundColor[];
-const NUM_COLORS = colorWheel.length;
-
-// ever-increasing index ensures colors are always sequential
-let currentColor = 0;
 
 /**
  * Execute a command asynchronously, piping stdio by default.
@@ -66,10 +56,7 @@ export function spawnStreaming(
   const stderrOpts: any = {};
 
   if (prefix) {
-    const colorName = colorWheel[currentColor % NUM_COLORS];
-    const color = chalk[colorName];
-
-    currentColor += 1;
+    const color = options.color || getColor()
 
     stdoutOpts.tag = `${color.bold(prefix)}:`;
     stderrOpts.tag = `${color(prefix)}:`;
@@ -151,14 +138,10 @@ function spawnProcess(
 
 function wrapError(spawned: ChildProcess): ChildProcess {
   if (spawned.project) {
-    return spawned.catch((err: any) => {
-      // ensure exit code is always a number
-      err.exitCode = getExitCode(err);
-
-      // log non-lerna error cleanly
-      err.project = spawned.project;
-
-      throw err;
+    return spawned.catch((err: Error) => {
+      const exitCode = getExitCode(err);
+      const error = new AppError(err, exitCode, spawned.project);
+      throw error;
     }) as ChildProcess;
   }
 
@@ -183,34 +166,4 @@ function getExitCode(error: any) {
 
   // we tried
   return process.exitCode;
-}
-
-export function getExecutionOptions(
-  project: Project,
-  reject?: boolean
-): SpawnOptions {
-  return {
-    cwd: dirname(project.path),
-    env: {},
-    project,
-    reject,
-  };
-}
-
-export interface ScriptStreamingOptions {
-  args: Array<string>;
-  project: Project;
-  prefix?: boolean;
-  reject?: boolean;
-}
-
-export function runScriptStreaming(
-  script: string,
-  { args, project, prefix, reject = true }: ScriptStreamingOptions
-) {
-  const argv = [script, ...args];
-  const options = getExecutionOptions(project, reject);
-  const prefixText = prefix ? project.id : undefined;
-
-  return spawnStreaming("dotnet", argv, options, prefixText);
 }

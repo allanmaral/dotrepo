@@ -1,20 +1,23 @@
-import yargs from "yargs";
-
+import { dotrepoCLI } from "./cli";
 import { graphCommand } from "./commands/graph";
 import { initCommand } from "./commands/init";
 import { buildCommand } from "./commands/build";
 
-yargs
-  .scriptName("dotrepo")
-  .usage("$0 <cmd> [args]")
-  .command(initCommand)
-  .command(buildCommand)
-  .command(graphCommand)
-  .options({
-    workspace: {
-      type: "string",
-      alias: "w",
-      describe: "Path to the workspace"
-    },
-  })
-  .help().argv;
+import pkg from "../package.json";
+
+const argv = process.argv.slice(2);
+const cwd = process.cwd();
+
+function main(argv: string[], cwd: string) {
+  const context = {
+    dotrepoVersion: pkg.version,
+  };
+
+  dotrepoCLI(argv, cwd)
+    .command(initCommand)
+    .command(buildCommand)
+    .command(graphCommand)
+    .parse(argv, context);
+}
+
+main(argv, cwd);

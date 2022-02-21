@@ -1,5 +1,5 @@
 import ora from "ora";
-import { prepareWorkspaceNugetConfigs } from "../nuget";
+// import { prepareWorkspaceNugetConfigs } from "../nuget";
 
 // import { saveLock } from "../lock";
 import { prepareProjects } from "../projects";
@@ -18,7 +18,7 @@ export const initCommand = createCommand({
     const spinner = ora("Preparing projects and solutions").start();
     await Promise.all([
       prepareProjects(projects, path),
-      prepareWorkspaceNugetConfigs(path),
+      // prepareWorkspaceNugetConfigs(path),
       prepareSolutions(
         solutions,
         projects,
