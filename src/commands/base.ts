@@ -1,13 +1,16 @@
 import { ArgumentsCamelCase, CommandModule, CommandBuilder } from "yargs";
 import ora from "ora";
 
-import { Configuration, loadConfiguration } from "../config";
-import { LockFile } from "../lock";
+import { Graph } from "../graph";
 import { Project } from "../projects/project";
-import { createDependencyGraph, loadWorkspaceProjects } from "../projects";
 import { Solution } from "../solutions/solution";
 import { loadWorkspaceSolutions } from "../solutions";
-import { Graph } from "../graph";
+import { createDependencyGraph, loadWorkspaceProjects } from "../projects";
+import {
+  Configuration,
+  createSampleConfiguration,
+  loadConfiguration,
+} from "../config";
 
 export interface CommandOptions<T = {}, U = {}> {
   /**
@@ -58,7 +61,6 @@ export function createCommand<T = {}, U extends BaseArguments = BaseArguments>(
 }
 
 export interface CommandBaseData {
-  lock: LockFile;
   path: string;
   config: Configuration;
   projects: Record<string, Project>;
@@ -71,34 +73,33 @@ export interface BaseArguments {
 }
 
 export async function prepare<T extends BaseArguments = BaseArguments>(
-  args: ArgumentsCamelCase<T>
+  args: ArgumentsCamelCase<T>,
+  createConfig: boolean = false
 ): Promise<CommandBaseData> {
-  let projects: Record<string, Project>;
-  let solutions: Record<string, Solution> = {};
   const spinner = ora("Preparing workspace").start();
-  const path =
-    args.workspace ||
-    process.cwd();
-  const config = loadConfiguration(path);
-  // let lock = await readLock(path);
-  // if (lock && lock.inDevelopment) {
-  //   projects = lock.projects;
-  //   solutions = lock.solutions;
-  // } else {
-    projects = await loadWorkspaceProjects(path, config);
-    solutions = await loadWorkspaceSolutions(path, projects, config);
-    // lock = await createLock(path, projects, solutions);
-  // }
-  const dependencyGraph = createDependencyGraph(projects);
 
-  spinner.succeed();
+  try {
 
-  return {
-    lock: {} as LockFile,
-    path,
-    config,
-    projects,
-    solutions,
-    dependencyGraph,
-  };
+    const path = args.workspace || process.cwd();
+    if (createConfig) {
+      await createSampleConfiguration(path);
+    }
+    const config = await loadConfiguration(path);
+    const projects = await loadWorkspaceProjects(path, config);
+    const solutions = await loadWorkspaceSolutions(path, projects, config);
+    const dependencyGraph = createDependencyGraph(projects);
+    
+    spinner.succeed();
+    
+    return {
+      path,
+      config,
+      projects,
+      solutions,
+      dependencyGraph,
+    };
+  } catch (err) {
+    spinner.fail('Failed to prepare workspace');
+    throw err;
+  }
 }

@@ -1,7 +1,5 @@
 import ora from "ora";
-// import { prepareWorkspaceNugetConfigs } from "../nuget";
 
-// import { saveLock } from "../lock";
 import { prepareProjects } from "../projects";
 import { prepareSolutions } from "../solutions";
 
@@ -12,22 +10,24 @@ export const initCommand = createCommand({
   describe: "Prepare monorepo environment",
   handler: async (args) => {
     const { projects, path, solutions, dependencyGraph } = await prepare(
-      args
+      args, true
     );
     
     const spinner = ora("Preparing projects and solutions").start();
-    await Promise.all([
-      prepareProjects(projects, path),
-      // prepareWorkspaceNugetConfigs(path),
-      prepareSolutions(
-        solutions,
-        projects,
-        dependencyGraph,
-        path
-      ),
-    ]);
-    // lock.inDevelopment = true;
-    // await saveLock(path, lock);
-    spinner.succeed("Done");
+    try {
+      await Promise.all([
+        prepareProjects(projects, path),
+        prepareSolutions(
+          solutions,
+          projects,
+          dependencyGraph,
+          path
+        ),
+      ]);
+      spinner.succeed("Done");
+    } catch (err) {
+      spinner.fail("Failed to prepare projects and solutions");
+      throw err;
+    }
   },
 });
