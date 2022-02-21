@@ -1,18 +1,17 @@
 import ora from "ora";
-import { runMultipleScriptsStreaming } from "../utils";
 
 import {
+  buildWorkspaceProjects,
   loadWorkspaceProjects,
   prepareProjects,
   prepareProjectsToBuild,
 } from "../projects";
 
 import { createCommand, prepare } from "./base";
-import { dirname, relative, resolve } from "path";
 
 export const buildCommand = createCommand({
   command: "build",
-  describe: "Build projects",
+  describe: "Run the build command in each project.",
   handler: async (args) => {
     const { projects, path, config, dependencyGraph } = await prepare(args);
     let buildError = null;
@@ -22,32 +21,7 @@ export const buildCommand = createCommand({
     prepareSpinner.succeed();
 
     try {
-      const sortedProjects = dependencyGraph
-        .getTopologicalOrder()
-        .map((node) => node.value!);
-      for (const project of sortedProjects) {
-        const relativeOutputPath = relative(dirname(project.path), resolve(path, ".repo", "pkg"))
-        await runMultipleScriptsStreaming(
-          [
-            {
-              script: "build",
-              args: [
-                "-c", "Release",
-                "--source", relativeOutputPath,
-                "--source", '"https://api.nuget.org/v3/index.json"',
-              ],
-            },
-            {
-              script: "pack",
-              args: ["--no-build", "-o", relativeOutputPath],
-            },
-          ],
-          {
-            project,
-            prefix: true,
-          }
-        );
-      }
+      await buildWorkspaceProjects(dependencyGraph, path);
     } catch (error) {
       buildError = error;
     }

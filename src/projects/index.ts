@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "fs/promises";
 import log from "npmlog";
-import { relative, resolve } from "path";
+import { dirname, relative, resolve } from "path";
 
 import { Graph } from "../graph/index";
 import { Configuration } from "../config";
@@ -8,6 +8,7 @@ import {
   calculateRelativePathBetweenFiles,
   cleanStringForRegex,
   glob,
+  runMultipleScriptsStreaming,
 } from "../utils";
 import { grammar } from "../grammar";
 
@@ -93,17 +94,17 @@ function removeExternalDependencies(
  */
 export async function loadWorkspaceProjects(
   path: string,
-  config?: Configuration
+  config: Configuration
 ): Promise<Record<string, Project>> {
   const projectFileNames: Set<string> = new Set();
 
-  if (config?.packages) {
-    for (const pkg of config.packages) {
-      const projectFiles = await glob(`${path}/${pkg}/**/*.csproj`);
-      projectFiles.forEach((filename) => projectFileNames.add(filename));
-    }
-  } else {
-    const projectFiles = await glob(`${path}/**/*.csproj`);
+  for (const pkgPath of config.packages) {
+    const pkg = pkgPath.replace(/\\/g, "/");
+    const projectFiles = pkg.endsWith("*")
+      ? await glob(`${path}/${pkg}*/*.csproj`)
+      : pkg.endsWith("/")
+      ? await glob(`${path}/${pkg}*.csproj`)
+      : await glob(`${path}/${pkg}/*.csproj`);
     projectFiles.forEach((filename) => projectFileNames.add(filename));
   }
 
@@ -185,7 +186,6 @@ export async function prepareProjects(
   projects: Record<string, Project>,
   path: string
 ): Promise<void> {
-
   await Promise.all(
     Object.keys(projects).map(async (projectId) => {
       log.silly("DotRepo", `Preparing project "%s"`, projectId);
@@ -247,4 +247,44 @@ export async function prepareProjectsToBuild(
       await writeFile(fullPath, projectFile);
     })
   );
+}
+
+export async function buildWorkspaceProjects(
+  dependencyGraph: Graph,
+  path: string
+): Promise<void> {
+  const sortedProjects = dependencyGraph
+    .getTopologicalOrder()
+    .map((node) => node.value!);
+
+  for (const project of sortedProjects) {
+    const relativeOutputPath = relative(
+      dirname(project.path),
+      resolve(path, ".repo", "pkg")
+    );
+    
+    await runMultipleScriptsStreaming(
+      [
+        {
+          script: "build",
+          args: [
+            "-c",
+            "Release",
+            "--source",
+            relativeOutputPath,
+            "--source",
+            '"https://api.nuget.org/v3/index.json"',
+          ],
+        },
+        {
+          script: "pack",
+          args: ["--no-build", "-o", relativeOutputPath],
+        },
+      ],
+      {
+        project,
+        prefix: true,
+      }
+    );
+  }
 }
