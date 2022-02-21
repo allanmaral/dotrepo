@@ -27,6 +27,7 @@ export async function createSampleConfiguration(path: string): Promise<void> {
       "dotrepo",
       'The file "dotrepo.json" already exists, skipping creation'
     );
+    return
   }
 
   const sampleConfig = {
