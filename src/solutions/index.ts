@@ -19,20 +19,18 @@ import { Graph } from "../graph";
 export async function loadWorkspaceSolutions(
   path: string,
   projects: Record<string, Project>,
-  config?: Configuration
+  config: Configuration
 ): Promise<Record<string, Solution>> {
   const soluitionFileNames: Set<string> = new Set();
 
-  if (config?.packages) {
-    await Promise.all(
-      config.packages.map(async (pkg) => {
-        const projectFiles = await glob(`${path}/${pkg}/**/*.sln`);
-        projectFiles.forEach((filename) => soluitionFileNames.add(filename));
-      })
-    );
-  } else {
-    const projectFiles = await glob(`${path}/**/*.sln`);
-    projectFiles.forEach((filename) => soluitionFileNames.add(filename));
+  for (const pkgPath of config.packages) {
+    const pkg = pkgPath.replace(/\\/g, "/");
+    const solutionFiles = pkg.endsWith("*")
+      ? await glob(`${path}/${pkg}*/*.sln`)
+      : pkg.endsWith("/")
+      ? await glob(`${path}/${pkg}*.sln`)
+      : await glob(`${path}/${pkg}/*.sln`);
+    solutionFiles.forEach((filename) => soluitionFileNames.add(filename));
   }
 
   const solutions = await Promise.all(
