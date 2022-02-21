@@ -1,4 +1,4 @@
-import { ArgumentsCamelCase, CommandModule, CommandBuilder } from "yargs";
+import { ArgumentsCamelCase, CommandModule, CommandBuilder, BuilderCallback } from "yargs";
 import ora from "ora";
 
 import { Graph } from "../graph";
@@ -23,7 +23,7 @@ export interface CommandOptions<T = {}, U = {}> {
    * Object declaring the options the command accepts,
    * or a function accepting and returning a yargs instance
    */
-  builder?: CommandBuilder<T, U> | undefined;
+  builder?: CommandBuilder<T, U> | BuilderCallback<T, U> | undefined;
 
   /**
    * String (or array of strings) that executes this command when given on the
@@ -57,7 +57,7 @@ export interface CommandOptions<T = {}, U = {}> {
 export function createCommand<T = {}, U extends BaseArguments = BaseArguments>(
   command: CommandOptions<T, U>
 ): CommandModule<T, U> {
-  return command;
+  return command as CommandModule<T, U>;
 }
 
 export interface CommandBaseData {

@@ -7,7 +7,7 @@ import { createCommand, prepare } from "./base";
 
 export const initCommand = createCommand({
   command: "init",
-  describe: "Prepare monorepo environment",
+  describe: "Create a new Dotrepo repo or upgrade an existing repo to the current version of Dotrepo.",
   handler: async (args) => {
     const { projects, path, solutions, dependencyGraph } = await prepare(
       args, true

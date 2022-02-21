@@ -11,7 +11,7 @@ import { createCommand, prepare } from "./base";
 
 export const buildCommand = createCommand({
   command: "build",
-  describe: "Build projects",
+  describe: "Run the build command in each project.",
   handler: async (args) => {
     const { projects, path, config, dependencyGraph } = await prepare(args);
     let buildError = null;
