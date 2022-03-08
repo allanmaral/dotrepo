@@ -9,25 +9,41 @@ export interface Configuration {
   sources?: string[];
 }
 
+function getConfigurationPath(cwd: string): string {
+  return resolve(cwd, "dotrepo.json");
+}
+
+function configurationExists(path: string): boolean {
+  const configFilePath = getConfigurationPath(path);
+  return existsSync(configFilePath)
+}
+
 export async function loadConfiguration(path: string): Promise<Configuration> {
-  const configFilePath = resolve(path, "dotrepo.json");
-  if (!existsSync(configFilePath)) {
+  const configFilePath = getConfigurationPath(path);
+  if (!configurationExists(path)) {
     throw new Error(`Configuration file not found at ${configFilePath}`);
   }
 
-  const fileContent = await readFile(resolve(path, "dotrepo.json"));
+  const fileContent = await readFile(configFilePath);
   const config = JSON.parse(fileContent.toString()) as Configuration;
   return config;
 }
 
+export async function saveConfiguration(
+  path: string,
+  config: Configuration
+): Promise<void> {
+  const configFilePath = getConfigurationPath(path);
+  await writeFile(configFilePath, JSON.stringify(config, null, 2));
+}
+
 export async function createSampleConfiguration(path: string): Promise<void> {
-  const configFilePath = resolve(path, "dotrepo.json");
-  if (existsSync(configFilePath)) {
+  if (configurationExists(path)) {
     log.info(
       "dotrepo",
       'The file "dotrepo.json" already exists, skipping creation'
     );
-    return
+    return;
   }
 
   const sampleConfig = {
@@ -35,5 +51,5 @@ export async function createSampleConfiguration(path: string): Promise<void> {
     packages: ["packages/*"],
   };
 
-  await writeFile(configFilePath, JSON.stringify(sampleConfig, null, 2));
+  await saveConfiguration(path, sampleConfig);
 }
