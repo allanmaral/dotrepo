@@ -6,6 +6,7 @@ import { createPromptModule } from "inquirer";
 import { grammar } from '../grammar';
 
 import { createCommand, prepare } from "./base";
+import { saveConfiguration } from "src/config";
 
 export const versionCommand = createCommand({
   command: "version [bump]",
@@ -41,7 +42,7 @@ export const versionCommand = createCommand({
   },
   handler: async (args) => {
     const prompt = createPromptModule();
-    const { config, projects } = await prepare(args);
+    const { config, projects, path } = await prepare(args);
     const { bump } = args;
 
     const nextVersion = semver.inc(config.version, bump as semver.ReleaseType);
@@ -92,5 +93,8 @@ export const versionCommand = createCommand({
       )
       await writeFile(project.path, updatedFile);
     }))
+
+    config.version = nextVersion!;
+    await saveConfiguration(path, config);
   },
 });
