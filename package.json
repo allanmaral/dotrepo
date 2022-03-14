@@ -1,6 +1,6 @@
 {
   "name": "dotrepo",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A CLI tool for managing .NET monorepos",
   "main": "bin/dotrepo.js",
   "bin": {
