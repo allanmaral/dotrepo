@@ -64,6 +64,7 @@ export const versionCommand = createCommand({
     const message = "";
 
     const currentBranch = getCurrentBranch();
+    console.log('Current branch:', currentBranch);
     if (
       !isGitReady({ ci, pushToRemote, commitAndTag, gitRemote, currentBranch })
     ) {
@@ -79,7 +80,7 @@ export const versionCommand = createCommand({
     }
 
     if (pushToRemote) {
-      await pushUpdatesToRemote(origin, currentBranch);
+      await pushUpdatesToRemote(gitRemote, currentBranch);
     } else {
       log.info("dotrepo", "Skipping git push");
     }
@@ -118,10 +119,8 @@ function isGitReady({
   if (pushToRemote && !remoteBranchExists(gitRemote, currentBranch)) {
     throw new AppError(
       "ENOREMOTEBRANCH",
-      dedent`
-        Branch '${currentBranch}' doesn't exist in remote '${gitRemote}'.
-        If this is a new branch, please make sure you push it to the remote first.
-      `,
+      `Branch '${currentBranch}' doesn't exist in remote '${gitRemote}'.\n` +
+      `If this is a new branch, please make sure you push it to the remote first.`,
       1
     );
   }
@@ -162,7 +161,9 @@ async function upgradePackages(
 ) {
   const prompt = createPromptModule();
 
-  const nextVersion = semver.inc(config.version, bump as semver.ReleaseType);
+  const nextVersion = semver.valid(bump) 
+    ? bump 
+    : semver.inc(config.version, bump as semver.ReleaseType);
 
   log.info("dotrepo", "current version", config.version);
   console.log("");
