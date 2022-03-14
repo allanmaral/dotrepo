@@ -25,6 +25,7 @@ specifiers:
   rollup-plugin-typescript2: ^0.31.1
   semver: ^7.3.5
   strong-log-transformer: ^2.1.0
+  temp-write: ^5.0.0
   ts-toolbelt: ^9.6.0
   tslib: ^2.3.1
   typescript: ^4.5.5
@@ -39,6 +40,7 @@ dependencies:
   ora: 5.4.1
   semver: 7.3.5
   strong-log-transformer: 2.1.0
+  temp-write: 5.0.0
   ts-toolbelt: 9.6.0
   tslib: 2.3.1
   yargs: 17.3.1
@@ -585,7 +587,6 @@ packages:
 
   /graceful-fs/4.2.9:
     resolution: {integrity: sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==}
-    dev: true
 
   /has-flag/3.0.0:
     resolution: {integrity: sha1-tdRU3CGZriJWmfNGfloH87lVuv0=}
@@ -1134,6 +1135,21 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
+  /temp-dir/2.0.0:
+    resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
+    engines: {node: '>=8'}
+    dev: false
+
+  /temp-write/5.0.0:
+    resolution: {integrity: sha512-cJhnzBW7DjNox7VcZDXeNlQSkIh3mX/h+M0n0Fh+zgT7YAHwI9c+OngKx4MCiQCVx9iXxV104xYlJgDBCCtawA==}
+    engines: {node: '>=12'}
+    dependencies:
+      graceful-fs: 4.2.9
+      is-stream: 2.0.1
+      temp-dir: 2.0.0
+      uuid: 8.3.2
+    dev: false
+
   /terser/5.10.0:
     resolution: {integrity: sha512-AMmF99DMfEDiRJfxfY5jj5wNH/bYO09cniSqhfoyxc8sFoYIgkJy86G04UoZU5VjlpnplVu0K6Tx6E9b5+DlHA==}
     engines: {node: '>=10'}
@@ -1218,6 +1234,11 @@ packages:
 
   /util-deprecate/1.0.2:
     resolution: {integrity: sha1-RQ1Nyfpw3nMnYvvS1KKJgUGaDM8=}
+    dev: false
+
+  /uuid/8.3.2:
+    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
     dev: false
 
   /wcwidth/1.0.1:
