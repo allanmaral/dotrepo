@@ -5,10 +5,20 @@ export class AppError extends Error {
   public readonly exitCode: number;
   public readonly project?: Project;
 
-  constructor(error: Error, exitCode: number, project?: Project)
-  constructor(name: string, description: string, exitCode: number, project?: Project)
+  constructor(error: Error, exitCode: number, project?: Project);
+  constructor(
+    name: string,
+    description: string,
+    exitCode: number,
+    project?: Project
+  );
 
-  constructor(arg1: string | Error, arg2: string | number, arg3?: number | Project, arg4?: Project) {
+  constructor(
+    arg1: string | Error,
+    arg2: string | number,
+    arg3?: number | Project,
+    arg4?: Project
+  ) {
     let name: string;
     let description: string;
     let exitCode: number;

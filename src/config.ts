@@ -15,7 +15,7 @@ function getConfigurationPath(cwd: string): string {
 
 function configurationExists(path: string): boolean {
   const configFilePath = getConfigurationPath(path);
-  return existsSync(configFilePath)
+  return existsSync(configFilePath);
 }
 
 export async function loadConfiguration(path: string): Promise<Configuration> {
