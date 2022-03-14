@@ -1,5 +1,9 @@
 import { constants } from "os";
-import execa, { SyncOptions, Options, ExecaChildProcess } from "execa";
+import execa, {
+  SyncOptions as ESyncOptions,
+  Options,
+  ExecaChildProcess,
+} from "execa";
 import { Chalk } from "chalk";
 import logTransformer from "strong-log-transformer";
 
@@ -7,9 +11,10 @@ import { Project } from "../projects/project";
 import { AppError } from "../error";
 import { getColor } from "./colors";
 
-export type SpawnOptions = Options & { 
-  project?: Project,
-  color?: Chalk
+export type SyncOptions = ESyncOptions;
+export type SpawnOptions = Options & {
+  project?: Project;
+  color?: Chalk;
 };
 export type ChildProcess = ExecaChildProcess<string> & { project?: Project };
 
@@ -56,7 +61,7 @@ export function spawnStreaming(
   const stderrOpts: any = {};
 
   if (prefix) {
-    const color = options.color || getColor()
+    const color = options.color || getColor();
 
     stdoutOpts.tag = `${color.bold(prefix)}:`;
     stderrOpts.tag = `${color(prefix)}:`;
