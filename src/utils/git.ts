@@ -157,9 +157,37 @@ export async function gitPush(
 ) {
   log.silly("dotrepo", "gitPush", remote, branch);
 
-  await exec(
-    "git",
-    ["push", "--follow-tags", "--no-verify", "--atomic", remote, branch],
-    opts
-  );
+  try {
+    await exec(
+      "git",
+      ["push", "--follow-tags", "--no-verify", "--atomic", remote, branch],
+      opts
+    );
+  } catch (error: any) {
+    // @see https://github.com/sindresorhus/execa/blob/v1.0.0/index.js#L159-L179
+    // the error message _should_ be on stderr except when GIT_REDIRECT_STDERR has been configured to redirect
+    // to stdout. More details in https://git-scm.com/docs/git#Documentation/git.txt-codeGITREDIRECTSTDERRcode
+    if (
+      /atomic/.test(error.stderr) ||
+      (process.env.GIT_REDIRECT_STDERR === "2>&1" &&
+        /atomic/.test(error.stdout))
+    ) {
+      // exec has propagated the error code to the process exit code --
+      // we'll clear it here as it will not propagate a success code
+      process.exitCode = 0;
+
+      log.warn("gitPush", error.stderr);
+      log.info("gitPush", "--atomic failed, attempting non-atomic push");
+
+      exec(
+        "git",
+        ["push", "--follow-tags", "--no-verify", remote, branch],
+        opts
+      );
+      
+      return
+    }
+
+    throw error;
+  }
 }
