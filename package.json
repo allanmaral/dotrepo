@@ -3,6 +3,10 @@
   "version": "0.0.6",
   "description": "A CLI tool for managing .NET monorepos",
   "main": "bin/dotrepo.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allanmaral/dotrepo.git"
+  },
   "bin": {
     "dotrepo": "bin/dotrepo.js"
   },
