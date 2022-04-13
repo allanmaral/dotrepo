@@ -1,4 +1,4 @@
-import ora from "ora";
+import { createSpinner } from "../utils/spinner";
 
 import {
   buildWorkspaceProjects,
@@ -16,7 +16,7 @@ export const buildCommand = createCommand({
     const { projects, path, config, dependencyGraph } = await prepare(args);
     let buildError = null;
 
-    const prepareSpinner = ora("Preparing projects for build").start();
+    const prepareSpinner = createSpinner("Preparing projects for build");
     await prepareProjectsToBuild(projects, path);
     prepareSpinner.succeed();
 
@@ -26,7 +26,7 @@ export const buildCommand = createCommand({
       buildError = error;
     }
 
-    const restoreSpinner = ora("Preparing projects for build").start();
+    const restoreSpinner = createSpinner("Preparing projects for build");
     const modifiedProjects = await loadWorkspaceProjects(path, config);
     await prepareProjects(modifiedProjects, path);
     
