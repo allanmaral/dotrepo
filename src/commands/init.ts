@@ -1,4 +1,4 @@
-import ora from "ora";
+import { createSpinner } from "../utils/spinner";
 
 import { prepareProjects } from "../projects";
 import { prepareSolutions } from "../solutions";
@@ -13,7 +13,7 @@ export const initCommand = createCommand({
       args, true
     );
     
-    const spinner = ora("Preparing projects and solutions").start();
+    const spinner = createSpinner("Preparing projects and solutions");
     try {
       await Promise.all([
         prepareProjects(projects, path),

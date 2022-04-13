@@ -51,27 +51,38 @@ export const versionCommand = createCommand({
       },
     });
 
+    yargs.options({
+      yes: {
+        describe: "Skip confirmation prompt",
+        alias: "y",
+        type: "boolean",
+      },
+    });
+
     return yargs;
   },
   handler: async (args) => {
-    const { config, projects, path } = await prepare(args);
-    const { bump } = args;
+    const { config, projects, path, ci } = await prepare(args);
+    const { bump, yes } = args;
 
-    const ci = false;
     const commitAndTag = true;
     const pushToRemote = true;
     const gitRemote = "origin";
     const message = "";
+    const autoConfirm = !!yes;
 
     const currentBranch = getCurrentBranch();
-    console.log('Current branch:', currentBranch);
+    console.log("Current branch:", currentBranch);
     if (
       !isGitReady({ ci, pushToRemote, commitAndTag, gitRemote, currentBranch })
     ) {
       return;
     }
 
-    await upgradePackages(bump as string, path, projects, config);
+    const upgraded = await upgradePackages(bump as string, path, projects, config, autoConfirm);
+    if (!upgraded) {
+      return;
+    }
 
     if (commitAndTag) {
       await commitAndTagUpdates(message, config);
@@ -120,7 +131,7 @@ function isGitReady({
     throw new AppError(
       "ENOREMOTEBRANCH",
       `Branch '${currentBranch}' doesn't exist in remote '${gitRemote}'.\n` +
-      `If this is a new branch, please make sure you push it to the remote first.`,
+        `If this is a new branch, please make sure you push it to the remote first.`,
       1
     );
   }
@@ -153,18 +164,12 @@ function isGitReady({
   return true;
 }
 
-async function upgradePackages(
-  bump: string,
-  path: string,
+async function confirmVersions(
+  nextVersion: string,
   projects: Record<string, Project>,
-  config: Configuration
-) {
-  const prompt = createPromptModule();
-
-  const nextVersion = semver.valid(bump) 
-    ? bump 
-    : semver.inc(config.version, bump as semver.ReleaseType);
-
+  config: Configuration,
+  autoConfirm: boolean
+): Promise<boolean> {
   log.info("dotrepo", "current version", config.version);
   console.log("");
   console.log("Changes:");
@@ -178,6 +183,16 @@ async function upgradePackages(
   );
   console.log("");
 
+  if (autoConfirm) {
+    log.info("dotrepo", "Auto-confirming versions");
+    return true;
+  }
+
+  return promptConfirmation();
+}
+
+async function promptConfirmation(): Promise<boolean> {
+  const prompt = createPromptModule();
   const confirm = await prompt([
     {
       type: "expand",
@@ -200,7 +215,31 @@ async function upgradePackages(
 
   if (confirm.confirm === "no") {
     log.info("dotrepo", "Aborted");
-    return;
+    return false;
+  }
+
+  return true;
+}
+
+async function upgradePackages(
+  bump: string,
+  path: string,
+  projects: Record<string, Project>,
+  config: Configuration,
+  autoConfirm: boolean
+): Promise<boolean> {
+  const nextVersion = semver.valid(bump)
+    ? bump
+    : semver.inc(config.version, bump as semver.ReleaseType)!;
+
+  const confirm = await confirmVersions(
+    nextVersion,
+    projects,
+    config,
+    autoConfirm
+  );
+  if (!confirm) {
+    return false;
   }
 
   await Promise.all(
@@ -217,6 +256,7 @@ async function upgradePackages(
 
   config.version = nextVersion!;
   await saveConfiguration(path, config);
+  return true;
 }
 
 async function commitAndTagUpdates(message: string, config: Configuration) {
