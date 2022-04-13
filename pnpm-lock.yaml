@@ -8,6 +8,7 @@ specifiers:
   '@types/dedent': ^0.7.0
   '@types/glob': ^7.2.0
   '@types/inquirer': ^8.2.0
+  '@types/is-ci': ^3.0.0
   '@types/node': ^17.0.12
   '@types/npmlog': ^4.1.4
   '@types/strong-log-transformer': ^1.0.0
@@ -17,6 +18,7 @@ specifiers:
   execa: ^5.1.1
   glob: ^7.2.0
   inquirer: ^8.2.0
+  is-ci: ^3.0.1
   npmlog: ^6.0.0
   ora: ^5.4.1
   rimraf: ^3.0.2
@@ -36,6 +38,7 @@ dependencies:
   execa: 5.1.1
   glob: 7.2.0
   inquirer: 8.2.0
+  is-ci: 3.0.1
   npmlog: 6.0.0
   ora: 5.4.1
   semver: 7.3.5
@@ -53,6 +56,7 @@ devDependencies:
   '@types/dedent': 0.7.0
   '@types/glob': 7.2.0
   '@types/inquirer': 8.2.0
+  '@types/is-ci': 3.0.0
   '@types/node': 17.0.12
   '@types/npmlog': 4.1.4
   '@types/strong-log-transformer': 1.0.0
@@ -189,6 +193,12 @@ packages:
     dependencies:
       '@types/through': 0.0.30
       rxjs: 7.5.4
+    dev: true
+
+  /@types/is-ci/3.0.0:
+    resolution: {integrity: sha512-Q0Op0hdWbYd1iahB+IFNQcWXFq4O0Q5MwQP7uN0souuQ4rPg1vEYcnIOfr1gY+M+6rc8FGoRaBO1mOOvL29sEQ==}
+    dependencies:
+      ci-info: 3.3.0
     dev: true
 
   /@types/minimatch/3.0.5:
@@ -349,6 +359,9 @@ packages:
   /chardet/0.7.0:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
     dev: false
+
+  /ci-info/3.3.0:
+    resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
 
   /cli-cursor/3.1.0:
     resolution: {integrity: sha512-I/zHAwsKf9FqGoXM4WWRACob9+SNukZTd94DWF57E4toouRulbCxcUh6RKUEOQlYTHJnzkPMySvPNaaSLNfLZw==}
@@ -651,6 +664,13 @@ packages:
       string-width: 4.2.3
       strip-ansi: 6.0.1
       through: 2.3.8
+    dev: false
+
+  /is-ci/3.0.1:
+    resolution: {integrity: sha512-ZYvCgrefwqoQ6yTyYUbQu64HsITZ3NfKX1lzaEYdkTDcfKzzCI/wthRRYKkdjHKFVgNiXKAKm65Zo1pk2as/QQ==}
+    hasBin: true
+    dependencies:
+      ci-info: 3.3.0
     dev: false
 
   /is-core-module/2.8.1:

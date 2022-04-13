@@ -36,6 +36,10 @@ export function dotrepoCLI(argv: string[] = [], cwd?: string) {
         alias: "w",
         describe: "Path to the workspace",
       },
+      ci: {
+        type: "boolean",
+        describe: "Run in CI mode",
+      }
     })
     .wrap(cli.terminalWidth()).epilogue(dedent`
   When a command fails, all logs are written to dotrepo.log in the current working directory.
